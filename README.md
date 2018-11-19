@@ -46,6 +46,7 @@ A step by step series of commands to install all the prerequisites, skip this st
 * **src**
 	- **main** : Main File containing application code  
  	- **lib** : Lib files for Monetdb interface & PyQt Files
+		- **mdvisual.py** - GUI for Main Page 
 		- **ddlalter.py** : GUI Page for DDL --> Alter
 		- **ddlcreate.py** : GUI Page for DDL --> Create
 		- **ddldrop.py** : GUI Page for DDL --> Drop
