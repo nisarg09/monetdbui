@@ -46,6 +46,7 @@ A step by step series of commands to install all the prerequisites, skip this st
 * **src**
 	- **main** : Main File containing application code  
  	- **lib** : Lib files for Monetdb interface & PyQt Files
+		- **mdvisual.py** - GUI for Main Page 
 		- **ddlalter.py** : GUI Page for DDL --> Alter
 		- **ddlcreate.py** : GUI Page for DDL --> Create
 		- **ddldrop.py** : GUI Page for DDL --> Drop
@@ -65,22 +66,19 @@ A step by step series of commands to install all the prerequisites, skip this st
 
 * Download source code git repo
 	```
-	git clone https://github.com/.......git
-	cd ethernetip
+	git clone https://github.com/nisarg09/monetdbui
+	cd monetdbui
 	python3 setup.py install 
 	```
 
 ### Executing Application
 * Enter in to the directory where software is installed
 	```
-	python3 main.py
+	python3 src/main.py
 	```
 
 ### Important Notes
 > When executing by command terminal will show logs and debug messages
-> Log files are created at '/var/log/dattus/'  
- 	- 'mdvisual_logger.log' - Debug and Info logging file
-	- 'mdvisual_error.log' - Error logging file
 > Refer to documentation in /doc direcotry, for detailed description on software
 
 ### Documentation
@@ -95,11 +93,7 @@ For detailed information regarding software refer the link below
 
 * **Nisarg Pandya** - *Initial work*
 
-See also the list of [URL](https://github.com/...) who contributed in this project.
+See also the list of [URL](https://github.com/nisarg09/) who contributed in this project.
 
 ## License
 * LGPL
-
-
-
-
