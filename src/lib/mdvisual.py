@@ -33,9 +33,6 @@ class Ui_MainWindow(object):
         self.deleteDB = QtWidgets.QPushButton(self.centralwidget)
         self.deleteDB.setObjectName("deleteDB")
         self.horizontalLayout.addWidget(self.deleteDB)
-        self.openDB = QtWidgets.QPushButton(self.centralwidget)
-        self.openDB.setObjectName("openDB")
-        self.horizontalLayout.addWidget(self.openDB)
         self.connectDB = QtWidgets.QPushButton(self.centralwidget)
         self.connectDB.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.connectDB.setAutoDefault(False)
@@ -141,7 +138,6 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MDVisual"))
         self.deleteDB.setText(_translate("MainWindow", "Delete Database"))
-        self.openDB.setText(_translate("MainWindow", "Open Database"))
         self.connectDB.setText(_translate("MainWindow", "Connect"))
         self.createDB.setText(_translate("MainWindow", "Create Database"))
         self.label.setText(_translate("MainWindow", "Query"))

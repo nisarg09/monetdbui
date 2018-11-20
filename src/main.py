@@ -41,7 +41,8 @@ class DMLINSERT(QDialog,Ui_DMLINSERT):
         """
         self.sigSelect.connect(self.insert_selectDBCallback)
         self.sigInsert.connect(self.insert_insertDBCallback)
-        self.insert_tableview.itemChanged.connect(self.selectCelldata)
+        #self.insert_tableview.itemChanged.connect(self.selectCelldata)
+        self.insert_tableview.itemSelectionChanged.connect(self.selectCelldata)
 
     def clickedInsert(self):
         """
@@ -65,28 +66,34 @@ class DMLINSERT(QDialog,Ui_DMLINSERT):
         self.col_names = [i[0] for i in self.monetdbobj.cursor.description]
         self.insert_tableview.setRowCount(0)
         self.insert_tableview.setColumnCount(len(self.col_names))
-        self.insert_tableview.verticalHeader().setVisible(False)
+        self.insert_tableview.verticalHeader().setVisible(True)
         self.insert_tableview.setHorizontalHeaderLabels(self.col_names)
-        for row_number,row_data in enumerate(data):
-            self.insert_tableview.insertRow(row_number)
-            for column_number,data in enumerate(row_data):
-                self.insert_tableview.setItem(row_number,column_number,QTableWidgetItem(None))
-        if not data:
-            logger.warning("No Table named {}".format(self.tableName))
+        self.insert_tableview.insertRow(0)
+        self.insert_tableview.clearContents()
 
-    def selectCelldata(self,item):
+    def selectCelldata(self):
         """
         Callback function for delete selected value from database
         """
-        self.val = item.text()
-        self.row = item.row()
-        self.col = item.column()
+        self.data_in = []
+        self.col = []
+        for item in self.insert_tableview.selectedItems():
+            self.val = item.text()
+            if self.val.isdigit():
+                self.val = int(self.val)
+            else:
+                self.val = "'" + item.text() + "'"
+            self.data_in.append(self.val)
+
+        for item in self.insert_tableview.selectedItems():
+            self.col.append(item.column())
+
 
     def insert_insertDBCallback(self):
         """
         Callback function for insert button on Insert Page
         """
-        self.monetdbobj.runQuery('insert into {} ({}) values ({})'.format(self.tableName,self.col_names[self.col],self.val))
+        self.monetdbobj.runQuery('insert into %s (%s) values (%s)'%(self.tableName,','.join([str(self.col_names[item]) for item in self.col]),','.join([str(item) for item in self.data_in])))
 
 class DMLDELETE(QDialog,Ui_DMLDELETE):
     sigSelect = pyqtSignal()
@@ -140,8 +147,6 @@ class DMLDELETE(QDialog,Ui_DMLDELETE):
             self.delete_tableview.insertRow(row_number)
             for column_number,data in enumerate(row_data):
                 self.delete_tableview.setItem(row_number,column_number,QTableWidgetItem(str(data)))
-        if not self.data:
-            logger.warning("No Table named {}".format(self.tableName))
 
     def delete_deleteDBCallback(self):
         """
@@ -160,8 +165,7 @@ class DMLDELETE(QDialog,Ui_DMLDELETE):
             if self.val.isdigit():
                 self.val = int(self.val)
             else:
-                self.val = str(self.val)
-            #print(self.val,self.column,self.row)
+                self.val = "'" + item.text() + "'"
 
 class DMLUPDATE(QDialog,Ui_DMLUPDATE):
     sigSelect = pyqtSignal()
@@ -212,14 +216,13 @@ class DMLUPDATE(QDialog,Ui_DMLUPDATE):
             self.update_tableview.insertRow(row_number)
             for column_number,data in enumerate(row_data):
                 self.update_tableview.setItem(row_number,column_number,QTableWidgetItem(str(data)))
-        if not self.data:
-            logger.warning("No Table named {}".format(self.tableName))
 
     def update_updateDBCallback(self):
         """
         Callback function for insert button on Insert Page
         """
-        self.monetdbobj.runQuery('update {} set {} = {} where {} = {}'.format(self.tableName,self.col_names[self.data_in[0][1]],self.data_in[0][0],self.col_names[self.data_in[1][1]],self.data_in[1][0]))
+        if len(self.data_in) >= 2:
+            self.monetdbobj.runQuery("update {} set {} = {} where {} = {}".format(self.tableName,self.col_names[self.data_in[0][1]],self.data_in[0][0],self.col_names[self.data_in[1][1]],self.data_in[1][0]))
 
     def selectCelldata(self):
         """
@@ -231,7 +234,7 @@ class DMLUPDATE(QDialog,Ui_DMLUPDATE):
             if self.val.isdigit():
                 self.val = int(self.val)
             else:
-                self.val = str(self.val)
+                self.val = "'" + item.text() + "'"
             self.data_in.append((self.val,item.column(),item.row()))
 
 class DDLALTER(QDialog,Ui_DDLALTER):
@@ -287,7 +290,11 @@ class DDLALTER(QDialog,Ui_DDLALTER):
         self.columnname = self.alter_columnname.toPlainText()
         self.datatype = self.alter_datatype.currentText()
         self.constraint = self.alter_constraint.currentText()
-        self.monetdbobj.runQuery("alter table {} add {} {}".format(self.tablename,self.columnname,self.datatype))
+        if self.constraint == 'NONE':
+            self.monetdbobj.runQuery("alter table {} add {} {}".format(self.tablename,self.columnname,self.datatype))
+        else:
+            self.monetdbobj.runQuery("alter table {} add {} {} {}".format(self.tablename,self.columnname,self.datatype,self.constraint))
+
 
     def alter_dropDBCallback(self):
         """
@@ -400,7 +407,10 @@ class DDLCREATE(QDialog,Ui_DDLCREATE):
         self.columnname = self.create_columnname.toPlainText()
         self.datatype = self.create_datatype.currentText()
         self.constraint = self.create_constraint.currentText()
-        self.monetdbobj.runQuery("create table if not exists {} ({} {} {})".format(self.tablename,self.columnname,self.datatype,self.constraint))
+        if self.constraint == 'NONE':
+            self.monetdbobj.runQuery("create table if not exists {} ({} {})".format(self.tablename,self.columnname,self.datatype))
+        else:
+            self.monetdbobj.runQuery("create table if not exists {} ({} {} {})".format(self.tablename,self.columnname,self.datatype,self.constraint))
 
 class MDVISUAL(QMainWindow,Ui_MainWindow):
     """
@@ -408,7 +418,7 @@ class MDVISUAL(QMainWindow,Ui_MainWindow):
     """
     sigConnect = pyqtSignal()
     sigCreate = pyqtSignal()
-    sigOpen = pyqtSignal()
+    #sigOpen = pyqtSignal()
     sigDelete = pyqtSignal()
     sigRunQuery = pyqtSignal()
 
@@ -428,7 +438,7 @@ class MDVISUAL(QMainWindow,Ui_MainWindow):
         self.monetDBObject = MONETDBINTERFACE()
         self.connectDB.clicked.connect(self.clickedConnect)
         self.createDB.clicked.connect(self.clickedCreate)
-        self.openDB.clicked.connect(self.clickedOpen)
+        #self.openDB.clicked.connect(self.clickedOpen)
         self.deleteDB.clicked.connect(self.clickedDelete)
         self.runQuerytoDB.clicked.connect(self.clickedRunQuery)
 
@@ -445,7 +455,7 @@ class MDVISUAL(QMainWindow,Ui_MainWindow):
         #Button Connect Signals - Callback definitions
         self.sigConnect.connect(self.connectDBCallback)
         self.sigCreate.connect(self.createDBCallback)
-        self.sigOpen.connect(self.openDBCallback)
+        #self.sigOpen.connect(self.openDBCallback)
         self.sigDelete.connect(self.deleteDBCallback)
         self.sigRunQuery.connect(self.runQueryDBCallback)
 
@@ -467,7 +477,7 @@ class MDVISUAL(QMainWindow,Ui_MainWindow):
         """
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        openfile,_ = QFileDialog.getSaveFileName(self,'Create Database','All Files (*);;Database Files (*.db)',options=options)
+        openfile,_ = QFileDialog.getSaveFileName(self,'Create Database','Database Files (*.db)',options=options)
         datafarm = str(openfile).split("/")[:-1]
         self.database = str(openfile).split("/")[-1]
         path_to_datafarm = "/".join(datafarm)
@@ -485,18 +495,18 @@ class MDVISUAL(QMainWindow,Ui_MainWindow):
         """
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        openfile,_ = QFileDialog.getSaveFileName(self,'Connect Database','All Files (*);;Database Files (*.db)',options=options)
+        openfile,_ = QFileDialog.getSaveFileName(self,'Connect Database','Database Files (*.db)',options=options)
         self.database = str(openfile).split("/")[-1]
         self.monetDBObject.connectDB(self.database)
 
-    def openDBCallback(self):
-        """
-        Open existing Database
-        """
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        openfile,_ = QFileDialog.getOpenFileName(self,'Open Database','/home/buddy/','Database Files (*.db)',options=options)
-        self.monetDBObject.openDB(openfile)
+    #def openDBCallback(self):
+    #    """
+    #    Open existing Database
+    #    """
+    #    options = QFileDialog.Options()
+    #    options |= QFileDialog.DontUseNativeDialog
+    #    openfile,_ = QFileDialog.getOpenFileName(self,'Open Database','/home/buddy/','Database Files (*.db)',options=options)
+    #    self.monetDBObject.openDB(openfile)
 
     def deleteDBCallback(self):
         """
@@ -593,11 +603,11 @@ class MDVISUAL(QMainWindow,Ui_MainWindow):
         """
         self.sigCreate.emit()
 
-    def clickedOpen(self):
-        """
-        Function for Emitting Signal on "Open" button click event
-        """
-        self.sigOpen.emit()
+    #def clickedOpen(self):
+    #    """
+    #    Function for Emitting Signal on "Open" button click event
+    #    """
+    #    self.sigOpen.emit()
 
     def clickedDelete(self):
         """
