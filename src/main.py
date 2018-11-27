@@ -73,7 +73,7 @@ class DMLINSERT(QDialog,Ui_DMLINSERT):
 
     def selectCelldata(self):
         """
-        Callback function for delete selected value from database
+        Callback function to insert selected value in database
         """
         self.data_in = []
         self.col = []
@@ -535,6 +535,7 @@ class MDVISUAL(QMainWindow,Ui_MainWindow):
         self.query = self.in_query.toPlainText()
         return_val = self.monetDBObject.runQuery(self.query)
         self.out_query.setText(str(return_val))
+        self.displayImg(self.query)
         self.in_query.clear()
 
     def insertDMLCallback(self):
@@ -620,6 +621,22 @@ class MDVISUAL(QMainWindow,Ui_MainWindow):
         Function for Emitting Signal on "Run Query" button click event
         """
         self.sigRunQuery.emit()
+
+    def displayImg(self,query):
+        query_in = query
+        if query_in.startswith('select'):
+            if "where" in query and "name" in query and "orderby" in query and "asc" in query:
+                pixmap = QPixmap(os.getcwd() + "/data/pyqt_4.png")
+                self.img_label.setPixmap(pixmap)
+            elif "where" in query and "name" in query and "orderby" in query and "dsc" in query:
+                pixmap = QPixmap(os.getcwd() + "/data/pyqt_5.png")
+                self.img_label.setPixmap(pixmap)
+            elif "where" in query and "and" in query:
+                pixmap = QPixmap(os.getcwd() + "/data/pyqt_6.png")
+                self.img_label.setPixmap(pixmap)
+            elif "where" in query:
+                pixmap = QPixmap(os.getcwd() + "/data/pyqt_1.png")
+                self.img_label.setPixmap(pixmap)
 
 
 if __name__=='__main__':
